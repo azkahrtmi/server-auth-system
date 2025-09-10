@@ -70,7 +70,7 @@ router.post("/signin", async (req: Request, res: Response) => {
       { id: user.id, role: user.role },
       process.env.JWT_SECRET as string,
       {
-        expiresIn: process.env.JWT_EXPIRES_IN || "1h",
+        expiresIn: process.env.JWT_EXPIRES_IN || "7d",
       } as SignOptions
     );
 
@@ -79,7 +79,7 @@ router.post("/signin", async (req: Request, res: Response) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // aktif hanya di https
       sameSite: "none",
-      maxAge: 60 * 60 * 1000, // 1 jam
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
     });
 
     // kirim response sekali saja
@@ -96,6 +96,16 @@ router.post("/signin", async (req: Request, res: Response) => {
     console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });
   }
+});
+
+// ======================= LOGOUT =======================
+router.post("/signout", (req: Request, res: Response) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "none",
+  });
+  res.json({ message: "Logged out successfully" });
 });
 
 export default router;
