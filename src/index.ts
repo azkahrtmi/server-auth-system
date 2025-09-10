@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import authRoutes from "../src/routes/auth";
+import userRoutes from "./routes/user";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use(cookieParser());
 app.use(express.json());
 app.use("/auth", authRoutes);
+app.use("/", userRoutes);
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
