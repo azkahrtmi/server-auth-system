@@ -175,4 +175,59 @@ router.post(
   }
 );
 
+// ======================= DELETE USER =======================
+router.delete(
+  "/dashboard-admin/:id",
+  verifyToken,
+  checkRoles(["admin"]), // hanya admin
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const result = await pool.query(
+        "DELETE FROM users WHERE id = $1 RETURNING id, username, email, role, status",
+        [id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({
+        message: "User deleted successfully",
+        user: result.rows[0],
+      });
+    } catch (err) {
+      console.error("Delete user error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
+// ======================= GET USER DETAIL =======================
+router.get(
+  "/dashboard-admin/:id",
+  verifyToken,
+  checkRoles(["admin"]), // hanya admin
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const result = await pool.query(
+        "SELECT id, username, email, role, status FROM users WHERE id = $1",
+        [id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({ user: result.rows[0] });
+    } catch (err) {
+      console.error("Get user detail error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
 export default router;
