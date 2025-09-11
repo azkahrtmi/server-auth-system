@@ -134,4 +134,45 @@ router.post(
   }
 );
 
+// ======================= CREATE USER =======================
+router.post(
+  "/dashboard-admin/create-user",
+  verifyToken,
+  checkRoles(["admin"]), // hanya admin boleh buat user baru
+  async (req: ExpressRequest<{}, {}, CreateUserBody>, res: Response) => {
+    try {
+      const { username, email, password } = req.body;
+
+      if (!username || !email || !password) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      const existing = await pool.query(
+        "SELECT * FROM users WHERE email = $1",
+        [email]
+      );
+      if (existing.rows.length > 0) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const result = await pool.query(
+        `INSERT INTO users (username, email, password, role, status) 
+         VALUES ($1, $2, $3, 'user', 'active') 
+         RETURNING id, username, email, role, status`,
+        [username, email, hashedPassword]
+      );
+
+      res.status(201).json({
+        message: "User created successfully",
+        user: result.rows[0],
+      });
+    } catch (err) {
+      console.error("Create user error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
 export default router;
