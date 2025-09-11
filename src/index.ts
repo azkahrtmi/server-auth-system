@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import authRoutes from "../src/routes/auth";
 import userRoutes from "./routes/user";
+import adminRoutes from "./routes/admin";
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/", userRoutes);
+app.use("/", adminRoutes);
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
