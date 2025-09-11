@@ -1,10 +1,18 @@
-import { Router, Response } from "express";
+import { Router } from "express";
+import { Request as ExpressRequest, Response } from "express";
+
 import bcrypt from "bcrypt";
 import pool from "../config/db";
 import { verifyToken, checkRoles } from "../middleware/authMiddleware";
 import { AuthRequest } from "../types/auth";
 
 const router = Router();
+
+interface CreateUserBody {
+  username: string;
+  email: string;
+  password: string;
+}
 
 // ======================= GET ALL USERS =======================
 router.get(
@@ -81,6 +89,46 @@ router.patch(
       });
     } catch (err) {
       console.error("Admin update error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
+// ======================= CREATE ADMIN =======================
+router.post(
+  "/dashboard-admin/create-admin",
+  verifyToken,
+  checkRoles(["admin"]), // hanya admin boleh buat admin baru
+  async (req: ExpressRequest<{}, {}, CreateUserBody>, res: Response) => {
+    try {
+      const { username, email, password } = req.body;
+
+      if (!username || !email || !password) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      const existing = await pool.query(
+        "SELECT * FROM users WHERE email = $1",
+        [email]
+      );
+      if (existing.rows.length > 0) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const result = await pool.query(
+        `INSERT INTO users (username, email, password, role, status) 
+         VALUES ($1, $2, $3, 'admin', 'active') 
+         RETURNING id, username, email, role, status`,
+        [username, email, hashedPassword]
+      );
+
+      res.status(201).json({
+        message: "Admin created successfully",
+        user: result.rows[0],
+      });
+    } catch (err) {
       res.status(500).json({ message: "Server error" });
     }
   }

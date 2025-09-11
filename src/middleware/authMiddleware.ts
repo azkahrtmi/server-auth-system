@@ -1,39 +1,42 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
-interface AuthRequest extends Request {
-  user?: JwtPayload | string; // hasil decode JWT
+export interface AuthRequest extends Request {
+  user?: JwtPayload & { id: string; role: string }; // supaya ada role & id
 }
 
-export const verifyToken = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  // Ambil token dari cookie
-  const token = req.cookies?.token;
+// ======================= VERIFY TOKEN =======================
+export const verifyToken: RequestHandler = (req, res, next) => {
+  const token = (req as AuthRequest).cookies?.token;
 
   if (!token) {
     return res.status(401).json({ message: "No token provided" });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-    req.user = decoded; // simpan payload JWT ke req.user
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET as string
+    ) as JwtPayload & {
+      id: string;
+      role: string;
+    };
+    (req as AuthRequest).user = decoded; // inject user info
     next();
   } catch (err) {
     return res.status(403).json({ message: "Invalid or expired token" });
   }
 };
 
-export const checkRoles = (roles: string[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.user || typeof req.user === "string") {
+// ======================= CHECK ROLES =======================
+export const checkRoles = (roles: string[]): RequestHandler => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as AuthRequest).user;
+    if (!user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const userRole = (req.user as JwtPayload).role;
-    if (!roles.includes(userRole)) {
+    if (!roles.includes(user.role)) {
       return res.status(403).json({ message: "Forbidden: Insufficient role" });
     }
 
