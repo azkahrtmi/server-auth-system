@@ -155,8 +155,9 @@ router.get("/profile", async (req: Request, res: Response) => {
 router.post("/signout", (req: Request, res: Response) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    // secure: process.env.NODE_ENV === "production",
+    secure: false,
+    sameSite: "lax",
   });
   res.json({ message: "Logged out successfully" });
 });
