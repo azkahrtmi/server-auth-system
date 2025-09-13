@@ -75,10 +75,11 @@ router.post("/signin", async (req: Request, res: Response) => {
     );
 
     // simpan token di cookie HttpOnly
+    console.log("Setting cookie for user:", user.email);
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // aktif hanya di https
-      sameSite: "none",
+      secure: false, // aktif hanya di https
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
     });
 
@@ -95,6 +96,39 @@ router.post("/signin", async (req: Request, res: Response) => {
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });
+  }
+  console.time("signin");
+  console.timeEnd("signin");
+});
+
+// ======================= PROFILE =======================
+router.get("/profile", async (req: Request, res: Response) => {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).json({ message: "No token" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
+      id: string;
+      role: string;
+    };
+
+    // ambil data user dari database
+    const userResult = await pool.query(
+      "SELECT id, username, email, role FROM users WHERE id = $1",
+      [decoded.id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = userResult.rows[0];
+    res.json(user); // kirim user lengkap ke frontend
+  } catch (err) {
+    console.error("Profile error:", err);
+    return res.status(401).json({ message: "Invalid token" });
   }
 });
 
