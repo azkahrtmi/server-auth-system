@@ -32,9 +32,28 @@ router.post("/signup", async (req: Request, res: Response) => {
       [username, email, hashedPassword]
     );
 
+    const user = newUser.rows[0];
+
+    // generate token langsung setelah signup
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+      } as SignOptions
+    );
+
+    // set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false, // untuk localhost
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     res.status(201).json({
       message: "User registered successfully",
-      user: newUser.rows[0],
+      user,
     });
   } catch (err) {
     console.error("Register error:", err);
@@ -116,7 +135,7 @@ router.get("/profile", async (req: Request, res: Response) => {
 
     // ambil data user dari database
     const userResult = await pool.query(
-      "SELECT id, username, email, role FROM users WHERE id = $1",
+      "SELECT id, username, email, role, status FROM users WHERE id = $1",
       [decoded.id]
     );
 
