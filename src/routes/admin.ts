@@ -18,7 +18,7 @@ interface CreateUserBody {
 router.get(
   "/dashboard-admin",
   verifyToken,
-  checkRoles(["admin"]), // hanya admin boleh akses
+  checkRoles(["admin"]),
   async (req: AuthRequest, res: Response) => {
     try {
       const result = await pool.query(
@@ -179,10 +179,17 @@ router.post(
 router.delete(
   "/dashboard-admin/:id",
   verifyToken,
-  checkRoles(["admin"]), // hanya admin
+  checkRoles(["admin"]),
   async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
+
+      // Cegah admin menghapus dirinya sendiri
+      if (req.user && req.user.id === parseInt(id)) {
+        return res
+          .status(400)
+          .json({ message: "You cannot delete your own account" });
+      }
 
       const result = await pool.query(
         "DELETE FROM users WHERE id = $1 RETURNING id, username, email, role, status",
