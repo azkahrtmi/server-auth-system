@@ -58,8 +58,7 @@ async function getProfile(token: string) {
     role: string;
   };
 
-  const user = await authRepository.findById;
-  decoded.id;
+  const user = await authRepository.findById(decoded.id);
   if (!user) {
     throw new Error("User not found");
   }

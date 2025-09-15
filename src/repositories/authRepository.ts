@@ -23,12 +23,12 @@ async function login(email: string) {
   return result.rows[0];
 }
 
-async function findById(id: number) {
+async function findById(id: string) {
   const result = await pool.query(
     "SELECT id, username, email, role, status FROM users WHERE id = $1",
     [id]
   );
-  return result.rows[0];
+  return result.rows[0] || null;
 }
 
 export default { findByEmail, createUser, login, findById };
