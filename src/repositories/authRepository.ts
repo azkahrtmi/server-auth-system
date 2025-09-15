@@ -15,4 +15,12 @@ async function createUser(username: string, email: string, password: string) {
   return result.rows[0];
 }
 
-export default { findByEmail, createUser };
+async function login(email: string) {
+  const result = await pool.query("SELECT * FROM users WHERE email = $1", [
+    email,
+  ]);
+
+  return result.rows[0];
+}
+
+export default { findByEmail, createUser, login };
