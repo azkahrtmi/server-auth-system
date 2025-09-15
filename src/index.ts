@@ -9,11 +9,10 @@ import cors from "cors";
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT;
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     credentials: true,
   })
 );
@@ -22,13 +21,11 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Hello Express with TypeScript!");
+  res.send("Hello from Express + TypeScript on Vercel!");
 });
 
 app.use("/auth", authRoutes);
 app.use("/", userRoutes);
 app.use("/", adminRoutes);
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+export default app;
