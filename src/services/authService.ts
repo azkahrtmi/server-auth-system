@@ -1,5 +1,6 @@
 import authRepository from "../repositories/authRepository";
 import bcrypt from "bcrypt";
+import { error } from "console";
 import jwt, { SignOptions } from "jsonwebtoken";
 
 async function register(username: string, email: string, password: string) {
@@ -52,4 +53,18 @@ async function login(email: string, password: string) {
   };
 }
 
-export default { register, login };
+async function getProfile(token: string) {
+  const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
+    id: string;
+    role: string;
+  };
+
+  const user = await authRepository.findById;
+  decoded.id;
+  if (!user) {
+    throw new Error("User not found");
+  }
+  return user;
+}
+
+export default { register, login, getProfile };

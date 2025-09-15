@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import authService from "../services/authService";
-import { log } from "console";
 
 async function register(req: Request, res: Response) {
   try {
@@ -50,4 +49,31 @@ async function login(req: Request, res: Response) {
   }
 }
 
-export default { register, login };
+async function getProfile(req: Request, res: Response) {
+  try {
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(401).json({ message: "No token" });
+    }
+
+    const user = await authService.getProfile(token);
+    res.json(user);
+  } catch (err: any) {
+    console.error("Profile error:", err);
+    if (err.message === "User not found") {
+      return res.status(404).json({ message: err.message });
+    }
+    return res.status(401).json({ message: "Invalid token" });
+  }
+}
+
+async function logout(req: Request, res: Response) {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+  });
+  res.json({ message: "Logged out successfully" });
+}
+
+export default { register, login, getProfile, logout };

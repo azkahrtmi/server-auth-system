@@ -1,3 +1,4 @@
+import { Result } from "pg";
 import pool from "../config/db";
 
 async function findByEmail(email: string) {
@@ -23,4 +24,12 @@ async function login(email: string) {
   return result.rows[0];
 }
 
-export default { findByEmail, createUser, login };
+async function findById(id: number) {
+  const result = await pool.query(
+    "SELECT id, username, email, role, status FROM users WHERE id = $1",
+    [id]
+  );
+  return result.rows[0];
+}
+
+export default { findByEmail, createUser, login, findById };
