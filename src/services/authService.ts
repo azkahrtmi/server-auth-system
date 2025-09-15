@@ -1,6 +1,5 @@
 import authRepository from "../repositories/authRepository";
 import bcrypt from "bcrypt";
-import { error } from "console";
 import jwt, { SignOptions } from "jsonwebtoken";
 
 async function register(username: string, email: string, password: string) {

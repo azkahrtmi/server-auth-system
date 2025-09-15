@@ -12,4 +12,5 @@ router.get("/dashboard-user", verifyToken, dashboardUser);
 
 // ======================= UPDATE USER PROFILE =======================
 router.patch("/dashboard-user/:id", verifyToken, updateUserController);
+
 export default router;

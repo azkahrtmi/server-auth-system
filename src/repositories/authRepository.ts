@@ -1,4 +1,3 @@
-import { Result } from "pg";
 import pool from "../config/db";
 
 async function findByEmail(email: string) {
