@@ -1,17 +1,21 @@
+import dotenv from "dotenv";
 import { Router } from "express";
-import { adminController } from "../controllers/adminController";
-import { verifyToken, checkRoles } from "../middleware/authMiddleware";
+import authController from "../controllers/authController";
+
+dotenv.config();
 
 const router = Router();
 
-// Middleware khusus untuk semua route di sini
-router.use(verifyToken, checkRoles(["admin"]));
+// ======================= REGISTER =======================
+router.post("/signup", authController.register);
 
-router.get("/dashboard-admin", adminController.getAllUsers);
-router.get("/dashboard-admin/:id", adminController.getUserById);
-router.post("/dashboard-admin/create-admin", adminController.createAdmin);
-router.post("/dashboard-admin/create-user", adminController.createUser);
-router.patch("/dashboard-admin/:id", adminController.updateUser);
-router.delete("/dashboard-admin/:id", adminController.deleteUser);
+// ======================= LOGIN =======================
+router.post("/signin", authController.login);
+
+// ======================= PROFILE =======================
+router.get("/profile", authController.getProfile);
+
+// ======================= LOGOUT =======================
+router.post("/signout", authController.logout);
 
 export default router;
